@@ -31,6 +31,8 @@ public:
 	}
 
 	const RBFValueType training( const std::vector<RBFDataType>& training_data, 
+				     //const std::vector<RBFOutputLayerType>& traning_labels,
+				     const std::vector<int>& traning_labels,
 				     const RBFValueType learning_rate,
 				     const int num_iterations,
 				     RBFValueType& mse	)
@@ -54,18 +56,45 @@ public:
 
 		// 4. caculate the weights from the hidden layer to the output layer
 		// 4.1 init the weights matrix 
-		RBFWeightsType weights = RBFWeightsType::Zero();
+		//RBFWeightsType weights = RBFWeightsType::Zero();
+		std::vector<RBFHiddenLayerType> weights( OutputLayer, RBFHiddenLayerType::Zero() );
 		initWeightsMatrix( weights );
 
 		// 4.2 train the weights matrix
 		for( int iter = 0; iter < num_iterations; iter ++ ) {
 			for( int i = 0; i < training_data.size(); i ++ ) {
-				RBFOutputLayerType predict = hidden_layer_outputs[i].transpose() * weights; 
+				//RBFOutputLayerType predict = hidden_layer_outputs[i].transpose() * weights; 
+				
+				//Eigen::Matrix<RBFValueType, 1, OutputLayer> error = traning_labels[i] - predict;
+				
+				for( int label = 0; label < OutputLayer; label ++ ) {
+					RBFValueType predict = hidden_layer_outputs[i].transpose() * weights[label];
+					predict = std::max( std::min( predict, 1.0 ), -1.0 );
+
+					RBFValueType truth_base = traning_labels[i] == label ? 1.0 : -1.0;
+					RBFValueType error = truth_base - predict;
+					
+					RBFHiddenLayerType delta = hidden_layer_outputs[i] * error * learning_rate;
+					weights[label] += delta;
+				}
 			}
 		}
 	}
 
 private:
+	void initWeightsMatrix( std::vector<RBFHiddenLayerType>& weights )
+	{
+		std::random_device rd;
+                std::default_random_engine random_engine( rd() );
+                std::uniform_real_distribution<RBFValueType> random_real_gen( -1, 1 );
+
+		for( auto& label : weights ) {
+			for( int i = 0; i < label.size(); i ++ ) {
+				label[i] = random_real_gen( random_engine ) ;
+			}
+		}
+	}
+
 	void initWeightsMatrix( RBFWeightsType& weights )
 	{
 		std::random_device rd;

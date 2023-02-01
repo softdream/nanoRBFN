@@ -43,23 +43,23 @@ public:
 		// 1. caculate the RBF Centroids
 		k_means_ptr_ = std::make_unique<means::KMeansPP<T, InputLayer>>( training_data );
 		
-		std::vector<RBFDataType> rbf_centroids;
 		k_means_ptr_->runKmeansPP( HiddenLayer, rbf_centroids ); 
 
 		// 2. caculate the parameter of  Gaussian Kernel Function
-		RBFValueType kernel_para = caculateGaussianKernelParameter( rbf_centroids );
+		kernel_para = caculateGaussianKernelParameter( );
 
 		// 3. caculate the output values of nodes of the hidden layer
 		std::vector<RBFHiddenLayerType> hidden_layer_outputs;
 		
-		caculateInputLayerOutputs( training_data, rbf_centroids, kernel_para, hidden_layer_outputs );
+		caculateHiddenLayerOutputs( training_data, hidden_layer_outputs );
 
 		// 4. caculate the weights from the hidden layer to the output layer
 		// 4.1 init the weights matrix 
 		//RBFWeightsType weights = RBFWeightsType::Zero();
-		std::vector<RBFHiddenLayerType> weights( OutputLayer, RBFHiddenLayerType::Zero() );
+		weights.assign( OutputLayer, RBFHiddenLayerType::Zero() );
 		initWeightsMatrix( weights );
 
+		RBFValueType accuracy = 0.0;
 		// 4.2 train the weights matrix
 		for( int iter = 0; iter < num_iterations; iter ++ ) {
 			for( int i = 0; i < training_data.size(); i ++ ) {
@@ -78,7 +78,53 @@ public:
 					weights[label] += delta;
 				}
 			}
+
+			// 4.3 statistics information 
+			mse = 0;
+			accuracy = 0;
+			for( int i = 0; i < training_data.size(); i ++ ) {
+				RBFValueType error = 0;
+				int prediction = predict( training_data[i], error );
+				
+				if( prediction == traning_labels[i] ) {
+					accuracy ++;
+				}
+	
+				mse += error * error;
+			}
+		
+			mse *= 1.0 / static_cast<RBFValueType>( training_data.size() );
+			accuracy *= 1.0 / static_cast<RBFValueType>( training_data.size() );
+
+			std::cout<<"Training Iteration : "<<iter<<", MSE = [ "<<mse<<" ], ACC = ["<<accuracy * 100<<" ], Progress : "<<static_cast<RBFValueType>( iter ) / static_cast<RBFValueType>( num_iterations ) * 100<<"------------------------------------------"<<std::endl;
 		}
+
+		return accuracy;
+	}
+	
+	const int predict( const RBFDataType& input_data, const RBFValueType& error )
+	{
+		RBFValueType maxi = std::numeric_limits<RBFValueType>::min();
+		
+		int best_label = -1;
+		
+		RBFHiddenLayerType hidden_layer_output;
+			
+		caculateHiddenLayerOutputs( input_data, hidden_layer_output );
+
+		for( int label = 0; label < OutputLayer; label ++ ) {
+			RBFValueType predict = hidden_layer_output * weights[label];
+			
+			if( maxi < predict ) {
+				maxi = predict;
+				best_label = label;
+			}
+		}
+
+		assert( best_label != -1 );
+		error = static_cast<RBFValueType>( best_label ) - maxi;
+
+		return best_label;
 	}
 
 private:
@@ -111,24 +157,31 @@ private:
 
 	}
 
-	void caculateInputLayerOutputs( const std::vector<RBFDataType>& training_data,
-					const std::vector<RBFDataType>& rbf_centroids,
-					const RBFValueType& kernel_para,
-					std::vector<RBFHiddenLayerType>& hidden_layer_outputs )
+	void caculateHiddenLayerOutputs( const std::vector<RBFDataType>& training_data,
+					 std::vector<RBFHiddenLayerType>& hidden_layer_outputs )
 	{
 		for( int i = 0; i < training_data.size(); i ++ ) {
 			for( int j = 0; j < HiddenLayer; j ++ ) {
-				hidden_layer_outputs[i][j] = getGaussianKernelFunctionOutput( training_data[i], rbf_centroids[j], kernel_para );
+				hidden_layer_outputs[i][j] = getGaussianKernelFunctionOutput( training_data[i], rbf_centroids[j] );
 			}
 		}
 	}
 
-	const RBFValueType getGaussianKernelFunctionOutput( const RBFDataType& data1, const RBFDataType& data2, const RBFValueType& kernel_para ) const
+	void caculateHiddenLayerOutputs( const RBFDataType& input_data,
+					 RBFHiddenLayerType& hidden_layer_output )
+	{
+		for( int j = 0; j < HiddenLayer; j ++ ) {
+                	hidden_layer_output[j] = getGaussianKernelFunctionOutput( input_data, rbf_centroids[j] );
+                }
+
+	}
+
+	const RBFValueType getGaussianKernelFunctionOutput( const RBFDataType& data1, const RBFDataType& data2 ) const
 	{
 		return ::exp( kernel_para * squaredDistance( data1, data2 ) );
 	}
 
-	const RBFValueType caculateGaussianKernelParameter( const std::vector<RBFDataType>& rbf_centroids )
+	const RBFValueType caculateGaussianKernelParameter( )
 	{
 		RBFValueType max_covarince = std::numeric_limits<RBFValueType>::min();
 
@@ -156,7 +209,16 @@ private:
 private:
 	std::unique_ptr<means::KMeansPP<T, InputLayer>> k_means_ptr_;
 
+	// centroids of the training data
+	std::vector<RBFDataType> rbf_centroids;
+
+	// the kernel function's paramter
+	RBFValueType kernel_para = 0;
+	
+	// the weights from hidden layer to output layer
+	std::vector<RBFHiddenLayerType> weights;
 };
+
 
 }
 

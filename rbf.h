@@ -96,7 +96,8 @@ public:
 			mse *= 1.0 / static_cast<RBFValueType>( training_data.size() );
 			accuracy *= 1.0 / static_cast<RBFValueType>( training_data.size() );
 
-			std::cout<<"Training Iteration : "<<iter<<", MSE = [ "<<mse<<" ], ACC = ["<<accuracy * 100<<" ], Progress : "<<static_cast<RBFValueType>( iter ) / static_cast<RBFValueType>( num_iterations ) * 100<<"------------------------------------------"<<std::endl;
+			std::cout<<"Training Iteration : "<<iter<<", MSE = [ "<<mse<<" ], ACC = ["<<accuracy * 100<<" ], Progress : "<<static_cast<RBFValueType>( iter ) / static_cast<RBFValueType>( num_iterations ) * 100<<std::endl;
+			std::cout<<"------------------------------------------"<<std::endl;
 		}
 
 		return accuracy;
@@ -125,6 +126,32 @@ public:
 		error = static_cast<RBFValueType>( best_label ) - maxi;
 
 		return best_label;
+	}
+
+	void test( const std::vector<RBFDataType>& testing_data, 
+		   const std::vector<int>& testing_labels )
+	{
+		std::cout<<"Testing ..."<<std::endl;
+
+		RBFValueType mse = 0;
+                RBFValueType accuracy = 0;
+                
+		for( int i = 0; i < testing_data.size(); i ++ ) {
+                	RBFValueType error = 0;
+                        int prediction = predict( testing_data[i], error );
+
+                        if( prediction == testing_labels[i] ) {
+                        	accuracy ++;
+                        }
+
+                        mse += error * error;
+                }
+
+                mse *= 1.0 / static_cast<RBFValueType>( testing_data.size() );
+                accuracy *= 1.0 / static_cast<RBFValueType>( testing_data.size() );
+
+                std::cout<<"Testing Result : MSE = [ "<<mse<<" ], ACC = ["<<accuracy * 100<<" ]"<<std::endl;
+		std::cout<<"------------------------------------------"<<std::endl;
 	}
 
 private:

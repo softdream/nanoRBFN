@@ -22,7 +22,7 @@ make
 
 ## 人脸朝向识别
 1. 数据来源：https://github.com/osama-afifi/RBF-Radial-Basis-Function-Network/tree/master/RadialBasisFunctionNetwork
-2. 说明：
+2. 说明：</br>
 2.1 在人脸朝向识别的training数据集中一共有150张人脸不同朝向的图片，每张图片固定分辨率50 * 50；</br>
 2.2 在人脸朝向识别的testing数据集中一共有30张人脸不同朝向的图片，每张图片固定分辨率50 * 50；</br>
 2.3 图片数据只是简单的序列化为一个2500维的向量，作为神经网络的输入，因此这里神经网络的输入节点个数就是2500个。</br>

@@ -49,3 +49,5 @@ b. 预测过程，根据实际的输入得到最终的结果：
 predict( const RBFDataType& input_data,  // 输入数据
          RBFValueType& error ) // 误差值
 ```
+## rbfn原理简述
+可以见https://zhuanlan.zhihu.com/p/602907840

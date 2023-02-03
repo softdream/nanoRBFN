@@ -1,5 +1,5 @@
 # nanoRBFN
-RBF Network, implementated by c++
+RBF Network, implementated by c++</br>
 使用C++实现的径向基神经网络分类框架，可以完成简单的分类任务。使用header-only设计，只有头文件，部署使用超级简单。
 
 

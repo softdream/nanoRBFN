@@ -34,7 +34,7 @@ rbf::RBF<T, InputLayer, HiddenLayer, OutputLayer> rbfn;
 ```
 其中输入节点的个数就是数据向量的维度，隐层节点个数可以自己随便设置，一般越大越精确，但同时计算量会增大，输出层节点个数就是要分的类数，在人脸朝向识别中只分为三类（脸朝左，脸朝前，脸朝右）。
 具体的可根据任务自己规划。
-2. RBFN的主要api只有两个：
+2. RBFN的主要api只有两个：</br>
 2.1 训练过程，根据已知的数据集学习出网络中的关键参数值：
 ```
 training( const std::vector<RBFDataType>& training_data, // 训练数据集
